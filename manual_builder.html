@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>測定器マニュアルビルダー</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F5F4F0;
+  --surface: #FFFFFF;
+  --surface2: #EEECE7;
+  --border: #D8D5CC;
+  --border2: #C8C4BA;
+  --text: #1A1916;
+  --text2: #6B6860;
+  --text3: #9E9B93;
+  --accent: #1D4ED8;
+  --accent-bg: #EEF2FF;
+  --accent-border: #BFCBF7;
+  --accent-text: #1E3A8A;
+  --success: #059669;
+  --success-bg: #ECFDF5;
+  --success-border: #A7F3D0;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Noto Sans JP', sans-serif;
+  --radius: 10px;
+  --radius-sm: 6px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* HEADER */
+.site-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.site-logo {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.site-logo .ks-badge {
+  font-size: 10px;
+  font-weight: 500;
+  background: var(--accent-bg);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  letter-spacing: 0.04em;
+}
+.header-actions { display: flex; align-items: center; gap: 10px; }
+.share-btn {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text2);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 5px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s;
+}
+.share-btn:hover { background: var(--border); color: var(--text); }
+.share-btn svg { width: 13px; height: 13px; }
+
+/* MAIN LAYOUT */
+.container {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+/* STEP INDICATOR */
+.step-bar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+.step-node {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text3);
+}
+.step-node.active { color: var(--accent); font-weight: 500; }
+.step-node.done { color: var(--success); }
+.step-circle {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 500;
+  color: var(--text3);
+  background: var(--surface);
+}
+.step-node.active .step-circle { background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent); }
+.step-node.done .step-circle { background: var(--success-bg); border-color: var(--success-border); color: var(--success); font-size: 13px; }
+.step-line { flex: 1; height: 1px; background: var(--border); margin: 0 8px; }
+
+/* SECTION LABEL */
+.sec-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+/* SCREEN */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* CHOICE CARDS */
+.choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.5rem; }
+.choice-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem 1rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.choice-card:hover { border-color: var(--border2); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.choice-card.selected { border-color: var(--accent); background: var(--accent-bg); }
+.choice-card .c-icon { font-size: 20px; margin-bottom: 8px; }
+.choice-card .c-label { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.choice-card .c-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
+.choice-card.selected .c-label { color: var(--accent-text); }
+.choice-card.selected .c-desc { color: var(--accent); opacity: 0.8; }
+
+/* ENTRY DETAIL */
+#entryDetail { margin-top: 0; }
+.entry-sub-label { font-size: 11px; font-weight: 500; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; margin-top: 1.5rem; }
+
+/* TAGS */
+.tag-wrap { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 0; }
+.tag {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.tag:hover { border-color: var(--border2); color: var(--text); }
+.tag.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* MODEL INPUT ACCORDION */
+.model-accordion {
+  margin-top: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+}
+.model-toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--surface2);
+  cursor: pointer;
+  font-size: 12px; font-weight: 500;
+  color: var(--text2);
+  user-select: none;
+  transition: background 0.12s;
+}
+.model-toggle:hover { background: var(--border); color: var(--text); }
+.model-toggle .arr { font-size: 10px; transition: transform 0.2s; }
+.model-toggle.open .arr { transform: rotate(180deg); }
+.model-body { display: none; padding: 14px; border-top: 1px solid var(--border); }
+.model-body.open { display: block; }
+.model-body input {
+  width: 100%;
+  font-family: var(--mono);
+  font-size: 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+}
+.model-body input:focus { border-color: var(--accent); }
+.model-hint { font-size: 11px; color: var(--text3); margin-top: 6px; line-height: 1.5; }
+.chip-wrap { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.chip {
+  font-family: var(--mono);
+  font-size: 12px;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 3px 10px;
+  color: var(--text);
+}
+.chip .rm { cursor: pointer; color: var(--text3); font-size: 15px; line-height: 1; }
+.chip .rm:hover { color: var(--text); }
+
+/* ACTION ROW */
+.action-row { margin-top: 1.5rem; display: flex; gap: 10px; align-items: center; }
+
+/* BUTTONS */
+.btn {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  padding: 8px 18px;
+  cursor: pointer;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text);
+  transition: all 0.12s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn:hover { background: var(--surface2); border-color: var(--border2); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-primary:hover { background: #1A40B8; border-color: #1A40B8; }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.btn-ghost { border-color: transparent; background: transparent; color: var(--text2); }
+.btn-ghost:hover { background: var(--surface2); border-color: var(--border); color: var(--text); }
+
+/* CONTEXT HEADER CARD */
+.ctx-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 1.5rem;
+}
+.ctx-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.ctx-type { font-size: 10px; font-weight: 500; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 3px; }
+.ctx-name { font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; line-height: 1.2; }
+.ctx-models { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.ctx-model-tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 8px;
+  color: var(--text);
+}
+.ctx-edit { font-size: 11px; color: var(--text3); cursor: pointer; white-space: nowrap; padding-top: 3px; text-decoration: underline; text-underline-offset: 2px; }
+.ctx-edit:hover { color: var(--accent); }
+
+/* CANDIDATES */
+.cand-section { border-top: 1px solid var(--border); margin-top: 12px; padding-top: 12px; }
+.cand-label { font-size: 10px; font-weight: 500; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+.cand-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.cand-item {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3px 11px;
+  color: var(--text2);
+}
+.cand-item.primary { border-color: var(--accent-border); background: var(--accent-bg); color: var(--accent-text); }
+.cand-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.cand-item.primary .cand-dot { background: var(--accent); }
+.cand-item .cand-dot { background: var(--border2); }
+
+/* PHASE TABS */
+.phase-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 1.5rem; }
+.phase-tab {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 9px 6px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text2);
+  transition: all 0.12s;
+  font-family: var(--sans);
+}
+.phase-tab:hover { border-color: var(--border2); color: var(--text); }
+.phase-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.phase-tab .pnum { font-size: 10px; font-weight: 400; display: block; margin-bottom: 2px; opacity: 0.6; }
+.phase-tab.active .pnum { opacity: 0.75; }
+
+/* EDITOR CARD */
+.editor-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  margin-bottom: 10px;
+}
+.editor-card label { font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 6px; }
+.editor-card input, .editor-card textarea {
+  width: 100%;
+  font-family: var(--sans);
+  font-size: 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  background: var(--bg);
+  color: var(--text);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.12s;
+}
+.editor-card input:focus, .editor-card textarea:focus { border-color: var(--accent); }
+.editor-card textarea { min-height: 88px; line-height: 1.6; }
+.step-badge {
+  display: inline-block;
+  font-size: 10px; font-weight: 700;
+  background: var(--accent-bg);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+  border-radius: 4px;
+  padding: 2px 8px;
+  margin-bottom: 10px;
+  letter-spacing: 0.04em;
+}
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+
+/* PHASE TOOLBAR */
+.phase-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.phase-toolbar h3 { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+
+/* PREVIEW */
+.preview-phase-title {
+  font-size: 11px; font-weight: 700;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.preview-step { margin-bottom: 8px; }
+.preview-step-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.preview-step-body { font-size: 13px; color: var(--text2); line-height: 1.7; white-space: pre-wrap; }
+.preview-block { margin-bottom: 1.5rem; }
+.empty-state {
+  background: var(--surface);
+  border: 1px dashed var(--border2);
+  border-radius: var(--radius);
+  padding: 2rem;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text3);
+}
+
+/* SHARE MODAL */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 200;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  width: min(420px, 90vw);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+.modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.modal p { font-size: 13px; color: var(--text2); margin-bottom: 1rem; line-height: 1.6; }
+.url-box {
+  display: flex; gap: 8px; align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  margin-bottom: 1rem;
+}
+.url-box span { font-family: var(--mono); font-size: 11px; color: var(--text2); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.url-box button {
+  font-family: var(--sans);
+  font-size: 11px; font-weight: 500;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.url-box button:hover { background: #1A40B8; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* FOOTER */
+.site-footer {
+  text-align: center;
+  padding: 2rem;
+  font-size: 11px;
+  color: var(--text3);
+  border-top: 1px solid var(--border);
+  margin-top: 4rem;
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-logo">
+    測定器マニュアルビルダー
+    <span class="ks-badge">Keysight</span>
+  </div>
+  <div class="header-actions">
+    <button class="share-btn" onclick="openShare()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="13" r="1.5"/><circle cx="4" cy="8" r="1.5"/>
+        <line x1="10.5" y1="3.8" x2="5.5" y2="7.2"/><line x1="5.5" y1="8.8" x2="10.5" y2="12.2"/>
+      </svg>
+      共有
+    </button>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- STEP BAR -->
+  <div class="step-bar">
+    <div class="step-node active" id="s1"><div class="step-circle">1</div></div>
+    <div class="step-line"></div>
+    <div class="step-node" id="s2"><div class="step-circle">2</div></div>
+    <div class="step-line"></div>
+    <div class="step-node" id="s3"><div class="step-circle">3</div></div>
+  </div>
+
+  <!-- SCREEN 1 -->
+  <div class="screen active" id="screen1">
+    <p class="sec-label">アプローチを選択</p>
+    <div class="choice-grid">
+      <div class="choice-card" id="c-instrument" onclick="selectEntry('instrument')">
+        <div class="c-icon">🔬</div>
+        <div class="c-label">測定器の種類から選ぶ</div>
+        <div class="c-desc">手持ちの機器から始めて、何を測れるか探す</div>
+      </div>
+      <div class="choice-card" id="c-measurement" onclick="selectEntry('measurement')">
+        <div class="c-icon">🎯</div>
+        <div class="c-label">測定したい内容から選ぶ</div>
+        <div class="c-desc">達成したいことから始めて、適切な機器を選ぶ</div>
+      </div>
+    </div>
+
+    <div id="entryDetail" style="display:none;">
+      <p class="entry-sub-label" id="entrySubLabel"></p>
+      <div class="tag-wrap" id="entryOptions"></div>
+
+      <div class="model-accordion" style="margin-top:1rem;">
+        <div class="model-toggle" id="modelToggle" onclick="toggleModelInput()">
+          <span>型番を入力する（オプション）</span>
+          <span class="arr">▼</span>
+        </div>
+        <div class="model-body" id="modelBody">
+          <input type="text" id="modelInput" placeholder="例: DSOX1204G, N9010B, E4990A" />
+          <div class="model-hint">Enterキーで追加。複数の型番を登録できます。</div>
+          <div class="chip-wrap" id="modelChips"></div>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn btn-primary" onclick="goToPhase()">次へ →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2 -->
+  <div class="screen" id="screen2">
+    <div class="ctx-card">
+      <div class="ctx-top">
+        <div>
+          <div class="ctx-type" id="h1TypeLabel"></div>
+          <div class="ctx-name" id="h1Name"></div>
+          <div class="ctx-models" id="h1Models"></div>
+        </div>
+        <span class="ctx-edit" onclick="goBack()">変更</span>
+      </div>
+      <div class="cand-section" id="h1CandSection" style="display:none;">
+        <div class="cand-label">候補となる測定器</div>
+        <div class="cand-list" id="h1CandList"></div>
+      </div>
+    </div>
+
+    <p class="sec-label">フェーズを選択</p>
+    <div class="phase-tabs">
+      <div class="phase-tab active" id="ph-select" onclick="switchPhase('select')"><span class="pnum">01</span>製品選定</div>
+      <div class="phase-tab" id="ph-connect" onclick="switchPhase('connect')"><span class="pnum">02</span>接続工程</div>
+      <div class="phase-tab" id="ph-measure" onclick="switchPhase('measure')"><span class="pnum">03</span>測定工程</div>
+      <div class="phase-tab" id="ph-analyze" onclick="switchPhase('analyze')"><span class="pnum">04</span>分析工程</div>
+    </div>
+
+    <div class="phase-toolbar">
+      <h3 id="phaseTitle">製品選定</h3>
+      <button class="btn btn-sm" onclick="addStep()">+ ステップ追加</button>
+    </div>
+    <div id="stepList"></div>
+
+    <div style="display:flex;justify-content:space-between;margin-top:1.5rem;">
+      <button class="btn btn-ghost" onclick="goBack()">← 戻る</button>
+      <button class="btn btn-primary" onclick="goToPreview()">プレビュー →</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 3 -->
+  <div class="screen" id="screen3">
+    <div class="ctx-card">
+      <div class="ctx-top">
+        <div>
+          <div class="ctx-type" id="h2TypeLabel"></div>
+          <div class="ctx-name" id="h2Name"></div>
+          <div class="ctx-models" id="h2Models"></div>
+        </div>
+        <span class="ctx-edit" onclick="goToEdit()">編集</span>
+      </div>
+      <div class="cand-section" id="h2CandSection" style="display:none;">
+        <div class="cand-label">候補となる測定器</div>
+        <div class="cand-list" id="h2CandList"></div>
+      </div>
+    </div>
+
+    <div id="previewContent"></div>
+
+    <div style="display:flex;justify-content:space-between;margin-top:1.5rem;">
+      <button class="btn btn-ghost" onclick="goToEdit()">← 編集に戻る</button>
+      <button class="btn btn-primary" onclick="exportText()">テキスト出力 ↗</button>
+    </div>
+  </div>
+
+</main>
+
+<!-- SHARE MODAL -->
+<div class="modal-overlay" id="shareModal">
+  <div class="modal">
+    <h3>このアプリを共有</h3>
+    <p>このURLを共有することで、同じアプリをブラウザ上で使ってもらえます。</p>
+    <div class="url-box">
+      <span id="shareUrl"></span>
+      <button onclick="copyUrl()">コピー</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeShare()">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal">
+    <h3>テキスト出力</h3>
+    <textarea id="exportText" style="width:100%;height:280px;font-family:var(--mono);font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px;background:var(--bg);color:var(--text);resize:none;outline:none;line-height:1.6;" readonly></textarea>
+    <div class="modal-actions" style="margin-top:10px;">
+      <button class="btn" onclick="copyExport()">コピー</button>
+      <button class="btn btn-primary" onclick="closeExport()">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  測定器マニュアルビルダー &nbsp;·&nbsp; Keysight Technologies
+</footer>
+
+<script>
+const instrumentOptions = ['オシロスコープ','スペアナ','ネットワークアナライザ','マルチメータ','パワーメータ','信号発生器','LCRメータ'];
+const measurementOptions = ['電圧 / 電流','周波数特性','Sパラメータ','EMC / ノイズ','インピーダンス','電力','デジタル信号'];
+
+const measurementToCandidates = {
+  '電圧 / 電流': [
+    { name: 'デジタルマルチメータ', primary: true },
+    { name: 'オシロスコープ', primary: true },
+    { name: 'データロガー', primary: false },
+    { name: 'パワーアナライザ', primary: false },
+  ],
+  '周波数特性': [
+    { name: 'ネットワークアナライザ', primary: true },
+    { name: 'スペクトラムアナライザ', primary: true },
+    { name: 'オシロスコープ', primary: false },
+    { name: '信号発生器 + 電圧計', primary: false },
+  ],
+  'Sパラメータ': [
+    { name: 'ネットワークアナライザ', primary: true },
+    { name: 'ベクトルネットワークアナライザ (VNA)', primary: true },
+    { name: 'TDR オシロスコープ', primary: false },
+  ],
+  'EMC / ノイズ': [
+    { name: 'スペクトラムアナライザ', primary: true },
+    { name: 'EMI レシーバ', primary: true },
+    { name: 'オシロスコープ', primary: false },
+    { name: 'シグナルジェネレータ', primary: false },
+  ],
+  'インピーダンス': [
+    { name: 'LCR メータ', primary: true },
+    { name: 'インピーダンスアナライザ', primary: true },
+    { name: 'ネットワークアナライザ', primary: false },
+  ],
+  '電力': [
+    { name: 'パワーメータ', primary: true },
+    { name: 'パワーアナライザ', primary: true },
+    { name: 'デジタルマルチメータ', primary: false },
+    { name: 'オシロスコープ + 電流プローブ', primary: false },
+  ],
+  'デジタル信号': [
+    { name: 'オシロスコープ', primary: true },
+    { name: 'ロジックアナライザ', primary: true },
+    { name: 'プロトコルアナライザ', primary: false },
+    { name: 'BERT', primary: false },
+  ],
+};
+
+let state = {
+  entryType: null,
+  entryValue: null,
+  modelNumbers: [],
+  currentPhase: 'select',
+  data: {
+    select:  { title: '製品選定', steps: [{title:'', body:''}] },
+    connect: { title: '接続工程', steps: [{title:'', body:''}] },
+    measure: { title: '測定工程', steps: [{title:'', body:''}] },
+    analyze: { title: '分析工程', steps: [{title:'', body:''}] },
+  }
+};
+
+function selectEntry(type) {
+  state.entryType = type;
+  state.entryValue = null;
+  document.getElementById('c-instrument').classList.toggle('selected', type === 'instrument');
+  document.getElementById('c-measurement').classList.toggle('selected', type === 'measurement');
+  const opts = type === 'instrument' ? instrumentOptions : measurementOptions;
+  document.getElementById('entrySubLabel').textContent = type === 'instrument' ? '測定器を選択' : '測定内容を選択';
+  const container = document.getElementById('entryOptions');
+  container.innerHTML = '';
+  opts.forEach(o => {
+    const t = document.createElement('div');
+    t.className = 'tag';
+    t.textContent = o;
+    t.onclick = () => {
+      document.querySelectorAll('#entryOptions .tag').forEach(x => x.classList.remove('on'));
+      t.classList.add('on');
+      state.entryValue = o;
+    };
+    container.appendChild(t);
+  });
+  document.getElementById('entryDetail').style.display = 'block';
+}
+
+function toggleModelInput() {
+  document.getElementById('modelToggle').classList.toggle('open');
+  document.getElementById('modelBody').classList.toggle('open');
+  if (document.getElementById('modelBody').classList.contains('open')) {
+    setTimeout(() => document.getElementById('modelInput').focus(), 50);
+  }
+}
+
+document.getElementById('modelInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); addModelNumber(); }
+});
+
+function addModelNumber() {
+  const inp = document.getElementById('modelInput');
+  const val = inp.value.trim().toUpperCase();
+  if (!val || state.modelNumbers.includes(val)) { inp.value = ''; return; }
+  state.modelNumbers.push(val);
+  inp.value = '';
+  renderModelChips();
+}
+
+function removeModel(idx) {
+  state.modelNumbers.splice(idx, 1);
+  renderModelChips();
+}
+
+function renderModelChips() {
+  const c = document.getElementById('modelChips');
+  c.innerHTML = '';
+  state.modelNumbers.forEach((m, i) => {
+    const ch = document.createElement('span');
+    ch.className = 'chip';
+    ch.innerHTML = `${escH(m)} <span class="rm" onclick="removeModel(${i})">×</span>`;
+    c.appendChild(ch);
+  });
+}
+
+function renderHeader(nameId, typeId, modelsId, csId, clId) {
+  const typeLabel = state.entryType === 'instrument' ? '測定器' : '測定内容';
+  document.getElementById(typeId).textContent = typeLabel;
+  document.getElementById(nameId).textContent = state.entryValue || '';
+  const modelsEl = document.getElementById(modelsId);
+  modelsEl.innerHTML = '';
+  state.modelNumbers.forEach(m => {
+    const t = document.createElement('span');
+    t.className = 'ctx-model-tag';
+    t.textContent = m;
+    modelsEl.appendChild(t);
+  });
+  const cs = document.getElementById(csId);
+  const cl = document.getElementById(clId);
+  if (state.entryType === 'measurement' && measurementToCandidates[state.entryValue]) {
+    cs.style.display = 'block';
+    cl.innerHTML = '';
+    measurementToCandidates[state.entryValue].forEach(c => {
+      const item = document.createElement('div');
+      item.className = 'cand-item' + (c.primary ? ' primary' : '');
+      item.innerHTML = `<span class="cand-dot"></span>${escH(c.name)}`;
+      cl.appendChild(item);
+    });
+  } else {
+    cs.style.display = 'none';
+  }
+}
+
+function goToPhase() {
+  const inp = document.getElementById('modelInput');
+  if (inp && inp.value.trim()) addModelNumber();
+  if (!state.entryValue) {
+    const first = document.querySelector('#entryOptions .tag');
+    if (first) first.click(); else return;
+  }
+  showScreen(2);
+  renderHeader('h1Name','h1TypeLabel','h1Models','h1CandSection','h1CandList');
+  switchPhase('select');
+}
+
+function switchPhase(phase) {
+  state.currentPhase = phase;
+  ['select','connect','measure','analyze'].forEach(p => {
+    document.getElementById('ph-' + p).classList.toggle('active', p === phase);
+  });
+  document.getElementById('phaseTitle').textContent = state.data[phase].title;
+  renderSteps();
+}
+
+function renderSteps() {
+  const phase = state.data[state.currentPhase];
+  const container = document.getElementById('stepList');
+  container.innerHTML = '';
+  phase.steps.forEach((step, i) => {
+    const card = document.createElement('div');
+    card.className = 'editor-card';
+    card.innerHTML = `
+      <div class="card-header">
+        <span class="step-badge">STEP ${i+1}</span>
+        ${phase.steps.length > 1 ? `<button class="btn btn-sm btn-ghost" onclick="removeStep(${i})">削除</button>` : ''}
+      </div>
+      <label>タイトル</label>
+      <input type="text" placeholder="例: プローブを接続する" value="${escH(step.title)}" oninput="updateStep(${i},'title',this.value)" />
+      <label style="margin-top:12px;">手順・説明</label>
+      <textarea placeholder="顧客向けに手順を記載..." oninput="updateStep(${i},'body',this.value)">${escH(step.body)}</textarea>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function updateStep(i, field, val) { state.data[state.currentPhase].steps[i][field] = val; }
+
+function addStep() {
+  state.data[state.currentPhase].steps.push({title:'', body:''});
+  renderSteps();
+  setTimeout(() => { const inputs = document.querySelectorAll('#stepList input'); if (inputs.length) inputs[inputs.length-1].focus(); }, 50);
+}
+
+function removeStep(i) { state.data[state.currentPhase].steps.splice(i,1); renderSteps(); }
+
+function goToPreview() {
+  showScreen(3);
+  renderHeader('h2Name','h2TypeLabel','h2Models','h2CandSection','h2CandList');
+  renderPreview();
+}
+
+function renderPreview() {
+  const phases = ['select','connect','measure','analyze'];
+  let html = '';
+  phases.forEach(p => {
+    const d = state.data[p];
+    const hasContent = d.steps.some(s => s.title || s.body);
+    if (!hasContent) return;
+    html += `<div class="preview-block">`;
+    html += `<div class="preview-phase-title">${escH(d.title)}</div>`;
+    d.steps.forEach((s, i) => {
+      if (!s.title && !s.body) return;
+      html += `<div class="editor-card preview-step">`;
+      if (s.title) html += `<div class="preview-step-title">${escH(s.title)}</div>`;
+      if (s.body) html += `<div class="preview-step-body">${escH(s.body)}</div>`;
+      html += `</div>`;
+    });
+    html += `</div>`;
+  });
+  if (!html) html = `<div class="empty-state">まだ内容がありません。編集画面でステップを入力してください。</div>`;
+  document.getElementById('previewContent').innerHTML = html;
+}
+
+function exportText() {
+  const phases = ['select','connect','measure','analyze'];
+  const typeLabel = state.entryType === 'instrument' ? '測定器' : '測定内容';
+  let lines = [`【${typeLabel}: ${state.entryValue}】`];
+  if (state.modelNumbers.length) lines.push(`型番: ${state.modelNumbers.join(', ')}`);
+  if (state.entryType === 'measurement' && measurementToCandidates[state.entryValue]) {
+    const p = measurementToCandidates[state.entryValue].filter(c => c.primary).map(c => c.name);
+    const o = measurementToCandidates[state.entryValue].filter(c => !c.primary).map(c => c.name);
+    if (p.length) lines.push(`推奨測定器: ${p.join(', ')}`);
+    if (o.length) lines.push(`補助測定器: ${o.join(', ')}`);
+  }
+  lines.push('');
+  phases.forEach(p => {
+    const d = state.data[p];
+    const hasContent = d.steps.some(s => s.title || s.body);
+    if (!hasContent) return;
+    lines.push(`■ ${d.title}`);
+    d.steps.forEach((s, i) => {
+      if (!s.title && !s.body) return;
+      if (s.title) lines.push(`[${i+1}] ${s.title}`);
+      if (s.body) lines.push(s.body);
+    });
+    lines.push('');
+  });
+  document.getElementById('exportText').value = lines.join('\n');
+  document.getElementById('exportModal').classList.add('open');
+}
+
+function copyExport() {
+  const ta = document.getElementById('exportText');
+  ta.select();
+  document.execCommand('copy');
+  const btn = event.target;
+  btn.textContent = 'コピー済み ✓';
+  setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+}
+
+function closeExport() { document.getElementById('exportModal').classList.remove('open'); }
+
+function openShare() {
+  document.getElementById('shareUrl').textContent = window.location.href;
+  document.getElementById('shareModal').classList.add('open');
+}
+
+function closeShare() { document.getElementById('shareModal').classList.remove('open'); }
+
+function copyUrl() {
+  navigator.clipboard.writeText(window.location.href).then(() => {
+    const btn = event.target;
+    btn.textContent = 'コピー済み ✓';
+    setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+  });
+}
+
+document.getElementById('shareModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeShare(); });
+document.getElementById('exportModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeExport(); });
+
+function goBack() { showScreen(1); }
+function goToEdit() {
+  showScreen(2);
+  renderHeader('h1Name','h1TypeLabel','h1Models','h1CandSection','h1CandList');
+}
+
+function showScreen(n) {
+  [1,2,3].forEach(i => document.getElementById('screen'+i).classList.toggle('active', i===n));
+  ['s1','s2','s3'].forEach((id, idx) => {
+    const el = document.getElementById(id);
+    el.classList.remove('active','done');
+    if (idx+1 === n) el.classList.add('active');
+    else if (idx+1 < n) { el.classList.add('done'); el.querySelector('.step-circle').textContent = '✓'; }
+    else el.querySelector('.step-circle').textContent = idx+1;
+  });
+}
+
+function escH(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>
